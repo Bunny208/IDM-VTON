@@ -1,5 +1,5 @@
 import gradio as gr
-import argparse, torch, os, time
+import argparse, torch, os
 from PIL import Image
 from src.tryon_pipeline import StableDiffusionXLInpaintPipeline as TryonPipeline
 from src.unet_hacked_garmnet import UNet2DConditionModel as UNet2DConditionModel_ref
@@ -31,7 +31,7 @@ if REPLICATE_API_TOKEN:
 else:
     print("CẢNH BÁO: Không tìm thấy biến môi trường REPLICATE_API_TOKEN.")
     print("Chức năng tạo 3D sẽ bị vô hiệu hóa.")
-    print("Vui lòng thêm API token của bạn vào Kaggle Secrets với Label là 'REPLICATE_API_TOKEN'.")
+    print("Vui lòng thêm API token của bạn vào Kaggle Secrets hoặc truyền trực tiếp vào lệnh chạy.")
 
 # --- Các biến toàn cục và thiết lập ban đầu ---
 ORIGINAL_IMAGE = None
@@ -50,7 +50,8 @@ dtypeQuantize = torch.float8_e4m3fn if load_mode in ('4bit','8bit') else dtype
 ENABLE_CPU_OFFLOAD = args.lowvram
 need_restart_cpu_offloading = False
 unet, pipe, UNet_Encoder = None, None, None
-example_path = os.path.join(os.path.dirname(__file__), 'example')
+example_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'example')
+
 
 # --- Các hàm xử lý ---
 
@@ -180,9 +181,9 @@ def start_tryon(dict_img, garm_img, garment_des, category, is_checked, is_checke
         return results, mask_gray, model_3d_url
 
 # ====================================================================================================
-# === DI CHUYỂN KHỐI NÀY LÊN TRÊN ĐỂ SỬA LỖI NameError ===
+# === SỬA LỖI: Di chuyển khối này lên trên để định nghĩa biến trước khi sử dụng ===
 # --- Chuẩn bị danh sách ví dụ cho giao diện ---
-garm_list = [os.path.join(example_path, "cloth", garm) for garm in os.listdir(os.path.join(example_path, "cloth"))]
+garm_list_path = [os.path.join(example_path, "cloth", garm) for garm in os.listdir(os.path.join(example_path, "cloth"))]
 human_list_paths = [os.path.join(example_path, "human", h) for h in os.listdir(os.path.join(example_path, "human"))]
 human_ex_list = [{'background': p, 'layers': None, 'composite': None} for p in human_list_paths if "Jensen" in p or "sam1 (1)" in p]
 # ====================================================================================================
